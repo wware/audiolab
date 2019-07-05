@@ -1,4 +1,4 @@
-import abc
+import abc     # https://pymotw.com/2/abc/
 
 class BaseSignal(object):
     @abc.abstractmethod
