@@ -55,3 +55,14 @@ foo_wrap.cxx: foo.h foo.i
 
 run:
 	$(PYTHON)
+
+CC = gcc
+CFLAGS = -O3 -Wall
+# CFLAGS = -g -Wall
+
+sndblit: sndblit.c
+	$(CC) $(CFLAGS) -o sndblit sndblit.c -lm
+
+install: sndblit
+	cp sndblit /usr/local/bin
+	cp sndblit.1 /usr/local/man/man1
