@@ -1,63 +1,25 @@
-/*
-  g++ -o foo foo.cpp ; ./foo > F; gnuplot
-*/
+#include "foo.h"
 
-#define _USE_MATH_DEFINES
+int _ready = 0;
+int sine_table[TABLE_SIZE];
 
-#include <math.h>
-#include <stdio.h>
-
-#define DT  (1. / 40000.)
-// #define MODULO   (1 << 24)
-#define MODULO   (1 << 16)
-
-int sine_table[MODULO];
-
-class Vox
+void _init_table(void)
 {
-private:
-    int phase, dphase;
-public:
-    void init(void) {
-        phase = 0;
+    int i;
+    if (!_ready) {
+        for (i = 0; i < TABLE_SIZE; i++)
+            sine_table[i] = (int) (WAVE_MAX * sin(2 * M_PI * i / TABLE_SIZE));
+        _ready = 1;
     }
-    void set_freq(double f) {
-        // dphase = 2.0 * M_PI * f;
-        dphase = f;
-    }
-    void step(void) {
-        phase = (phase + dphase) & (MODULO - 1);
-    }
-    int sine(void) {
-        return sine_table[phase];
-    }
-    int square(void) {
-        if (phase < (MODULO << 1))
-            return (int) (sqrt(0.5) * MODULO);
-        else
-            return -(int) (sqrt(0.5) * MODULO);
-    }
-    int ramp(void) {
-        return (phase << 1) - MODULO;
-    }
-    int triangle(void) {
-        if (phase < (MODULO << 1))
-            return (phase << 2) - MODULO;
-        else
-            return -(phase << 2) + 3 * MODULO;
-    }
-};
+}
 
 int main(void)
 {
     int i;
-    for (i = 0; i < MODULO; i++)
-        sine_table[i] = (int) (MODULO * sin(2 * M_PI * i / MODULO));
-    // printf("hello, world\n");
     Vox v = Vox();
     v.set_freq(3);
-    for (i = 0; i < MODULO; i++) {
-        printf("%d %d %d\n", i, v.sine(), v.ramp());
+    for (i = 0; i < SAMPLES_PER_SECOND; i++) {
+        printf("%d %d\n", i, v.sine());
         v.step();
     }
     return 0;
