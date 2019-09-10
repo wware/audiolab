@@ -37,7 +37,9 @@ INCL=-I$(PYBASE)/include/python$(PYDVER)
 PYLIB=$(PYBASE)/lib/python$(PYDVER)/config/libpython$(PYDVER).a
 PYTHON=$(PYBASE)/bin/python
 
-swig: foo_wrap.cxx foo.o
+all: _foo.so sndblit
+
+_foo.so: foo_wrap.cxx foo.o
 	g++ -c -fpic $(INCL) foo_wrap.cxx
 	g++ -dynamiclib foo_wrap.o foo.o $(PYLIB) -o _foo.so
 
@@ -48,12 +50,12 @@ foo.o: foo.cpp
 	g++ -c -o foo.o foo.cpp
 
 clean:
-	rm -f *.pyc *.o *.so foo.py foo_wrap.cxx foo F G H
+	rm -f *.pyc *.o *.so foo.py foo_wrap.cxx foo F G H sndblit
 
 foo_wrap.cxx: foo.h foo.i
 	swig -python -c++ foo.i
 
-run:
+run: _foo.so
 	$(PYTHON)
 
 CC = gcc
@@ -64,5 +66,5 @@ sndblit: sndblit.c
 	$(CC) $(CFLAGS) -o sndblit sndblit.c -lm
 
 install: sndblit
-	cp sndblit /usr/local/bin
-	cp sndblit.1 /usr/local/man/man1
+	sudo cp sndblit /usr/local/bin
+	sudo cp sndblit.1 /usr/share/man/man1

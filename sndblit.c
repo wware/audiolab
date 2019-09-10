@@ -80,7 +80,7 @@ struct blip {
 static int verbose_flag = 0;
 
 static FILE *infile;
-static char outfile_name[80];
+static char outfile_name[80], left_data_name[80], right_data_name[80];
 static int num_blips, blipsize, max_value;
 static int *leftbuf, *rightbuf;
 static double blip_duration, sampling_frequency = 44100.0, t, dt;
@@ -430,6 +430,8 @@ static const struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
 	{"input-file", required_argument, NULL, 'i'},
 	{"output-file", required_argument, NULL, 'o'},
+	{"left-data", optional_argument, NULL, 'L'},
+	{"right-data", optional_argument, NULL, 'R'},
 	{"sampling-frequency", required_argument, NULL, 's'},
 	{"help", no_argument, NULL, 'h'},
 	{NULL, 0, NULL, 0}
@@ -444,7 +446,9 @@ int main(int argc, char *argv[])
 
 	infile = stdin;
 	strcpy(outfile_name, "sndblit_output.wav");
-	while ((c = getopt_long(argc, argv, "s:i:o:vh?",
+	left_data_name[0] = '\0';
+	right_data_name[0] = '\0';
+	while ((c = getopt_long(argc, argv, "s:i:o:L:R:vh?",
 				long_options, (int *) 0)) != EOF)
 		switch (c) {
 		case 's':
@@ -461,6 +465,12 @@ int main(int argc, char *argv[])
 			break;
 		case 'o':
 			strcpy(outfile_name, optarg);
+			break;
+		case 'L':
+			strcpy(left_data_name, optarg);
+			break;
+		case 'R':
+			strcpy(right_data_name, optarg);
 			break;
 		case 'v':
 			verbose_flag = 1;
@@ -495,12 +505,18 @@ int main(int argc, char *argv[])
 	zero_blip->num_sinusoids = 0;
 	current_blip = zero_blip;
 
-	leftf = fopen("left.tmp", "wb");
+	if (left_data_name[0] == '\0')
+		leftf = fopen("left.tmp", "wb");
+	else
+		leftf = fopen(left_data_name, "wb");
 	if (leftf == NULL) {
 		fprintf(stderr, "can't open left.tmp for writing\n");
 		return 1;
 	}
-	rightf = fopen("right.tmp", "wb");
+	if (right_data_name[0] == '\0')
+		rightf = fopen("right.tmp", "wb");
+	else
+		rightf = fopen(right_data_name, "wb");
 	if (rightf == NULL) {
 		fprintf(stderr, "can't open right.tmp for reading\n");
 		return 1;
@@ -523,8 +539,15 @@ int main(int argc, char *argv[])
 		else
 			read_in_blip();
 		merge_with_previous_blip();
-		fwrite(leftbuf, sizeof(int), blipsize, leftf);
-		fwrite(rightbuf, sizeof(int), blipsize, rightf);
+		if (left_data_name[0] || right_data_name[0]) {
+			for (j = 0; j < blipsize; j++) {
+				fprintf(leftf, "%d %d\n", j + i * blipsize, leftbuf[j]);
+				fprintf(rightf, "%d %d\n", j + i * blipsize, rightbuf[j]);
+			}
+		} else {
+			fwrite(leftbuf, sizeof(int), blipsize, leftf);
+			fwrite(rightbuf, sizeof(int), blipsize, rightf);
+		}
 		if (verbose_flag)
 			printf("finishing loop for blip %d\n", i - 1);
 	}
@@ -547,21 +570,34 @@ int main(int argc, char *argv[])
 	wave_file_header(outf);
 	outbuf = malloc(4 * blipsize);
 	TESTMALLOC(outbuf);
-	leftf = fopen("left.tmp", "rb");
+	if (left_data_name[0] == '\0')
+		leftf = fopen("left.tmp", "rb");
+	else
+		leftf = fopen(left_data_name, "rb");
 	if (leftf == NULL) {
 		fprintf(stderr, "can't open left.tmp for reading\n");
 		return 1;
 	}
-	rightf = fopen("right.tmp", "rb");
+	if (right_data_name[0] == '\0')
+		rightf = fopen("right.tmp", "rb");
+	else
+		rightf = fopen(right_data_name, "rb");
 	if (rightf == NULL) {
 		fprintf(stderr, "can't open right.tmp for reading\n");
 		return 1;
 	}
 	for (i = 0; i < num_blips; i++) {
-		ASSERT(fread(leftbuf, sizeof(int), blipsize, leftf) ==
-		       blipsize);
-		ASSERT(fread(rightbuf, sizeof(int), blipsize, rightf) ==
-		       blipsize);
+		if (left_data_name[0] || right_data_name[0]) {
+			for (j = 0; j < blipsize; j++) {
+				ASSERT(fscanf(leftf, "%d %d\n", &k, &leftbuf[j]) == 2);
+				ASSERT(fscanf(rightf, "%d %d\n", &k, &rightbuf[j]) == 2);
+			}
+		} else {
+			ASSERT(fread(leftbuf, sizeof(int), blipsize, leftf) ==
+			       blipsize);
+			ASSERT(fread(rightbuf, sizeof(int), blipsize, rightf) ==
+			       blipsize);
+		}
 		for (j = k = 0; j < blipsize; j++) {
 			int x, y;
 			x = (mult * leftbuf[j]) >> 16;
