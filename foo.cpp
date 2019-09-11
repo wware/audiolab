@@ -13,6 +13,14 @@ void _init_table(void)
     }
 }
 
+
+int sinusoid(int32_t **ptr, double freq, double phase,
+             double ampl1, double ampl2)
+{
+    // fill in details later
+    return 0;
+}
+
 int main(void)
 {
     int i;

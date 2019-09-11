@@ -16,6 +16,8 @@
 
 extern void _init_table(void);
 extern int sine_table[8192]; // TABLE_SIZE
+extern int sinusoid(int32_t **ptr, double freq, double phase,
+                    double ampl1, double ampl2);
 
 class Vox
 {

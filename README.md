@@ -1,3 +1,30 @@
+# New vibes for sndblit
+
+I want this to become C++ code that can run on Mac or Linux or Teensy.
+The idea of a wavelet object is out. Let's just have a C-like function
+like this.
+
+    int sinusoid(int32_t **ptr, double freq, double phase,
+                 double ampl1, double ampl2);
+    ptr is a pointer to a sample buffer of known size
+    phase is the phase at the beginning of the sample buffer
+    ampl1 is amplitude at beginning
+    ampl2 is amplitude at end of sample buffer
+    return value is an error code of some sort, 0 if ok
+
+For SWIG purposes, the closest thing to this that I have right now is the
+`_init_table` function. So model it after that.
+
+https://docs.python.org/2.7/library/ctypes.html#arrays
+https://docs.python.org/2.7/library/ctypes.html#pointers
+
+    from ctypes import c_int
+    N = 2048
+    bufferType = c_int * N
+    a = bufferType()
+    r = sinusoid(a, ....)
+    # do stuff, and then eventually garbage-collect a
+
 # Burns organ as software on a Teensy
 
 You want to generate blits of sound, basically doing what sndblit is
