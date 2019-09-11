@@ -22,28 +22,45 @@ INCL=-I$(PYBASE)/include/python2.7
 PYTHON=$(PYBASE)/bin/python
 FPIC=-fPIC
 SHARED=--shared
-CFLAGS=$$(python2-config --cflags) -g -fPIC
-LDFLAGS=$$(python2-config --ldflags) -g -shared
+CFLAGS=$$(python2-config --cflags) -g
+LDFLAGS=$$(python2-config --ldflags) -g
 endif
 
 ###############################
 
 CC = gcc
 # CFLAGS = -O3 -Wall
-# CFLAGS = -g -Wall
+CFLAGS = -g -Wall
 
 ###############################
 
-all: xx.so
+all: _foo.so sndblit
 
-xx.so: xxmodule.o
-	gcc $(LDFLAGS) xxmodule.o -lm -lpython$(PYDVER) -o xx.so
+_foo.so: foo_wrap.cxx foo.o
+	g++ -c $(CFLAGS) $(FPIC) $(INCL) foo_wrap.cxx
+	g++ $(LDFLAGS) foo_wrap.o foo.o -lpython$(PYDVER) -o _foo.so
 
-xxmodule.o: xxmodule.c
-	gcc -c $(CFLAGS) -o xxmodule.o xxmodule.c
+F: foo
+	./foo > F
+
+foo: foo.o
+	g++ -o foo foo.o
+
+foo.o: foo.cpp
+	g++ -c $(CFLAGS) -o foo.o foo.cpp
 
 clean:
-	rm -f *.pyc *.o *.so
+	rm -f *.pyc *.o *.so foo.py foo_wrap.cxx foo F G H sndblit
 
-run: xx.so
+foo_wrap.cxx: foo.h foo.i
+	swig -python -c++ foo.i
+
+run: _foo.so
 	$(PYTHON)
+
+sndblit: sndblit.c
+	$(CC) $(CFLAGS) -o sndblit sndblit.c -lm
+
+install: sndblit
+	sudo cp sndblit /usr/local/bin
+	sudo cp sndblit.1 /usr/share/man/man1

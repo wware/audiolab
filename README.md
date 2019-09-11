@@ -1,14 +1,8 @@
-# Updating the sndblit concept
+# New vibes for sndblit
 
-We can make global assumptions about fixed-point characteristics, time increment,
-and T (half the duration of a blip) and those can go in a header file. Generally
-speaking we will have dt = 1./44100, and T = N \* dt, with sample buffers of length N.
-This is all coded in C++ with a Swig wrapper. When we run it on the Teensy we call
-it as a C++ thing. On a laptop we can invoke it all with Python.
-
-I want this to become C++ code that can run on Mac or Linux or Teensy. Let's have
-a C-like function like this. When called, it adds the sinusoid to whatever is already
-in the buffer.
+I want this to become C++ code that can run on Mac or Linux or Teensy.
+The idea of a wavelet object is out. Let's just have a C-like function
+like this.
 
     int sinusoid(int32_t **ptr, double freq, double phase,
                  double ampl1, double ampl2);
@@ -17,6 +11,9 @@ in the buffer.
     ampl1 is amplitude at beginning
     ampl2 is amplitude at end of sample buffer
     return value is an error code of some sort, 0 if ok
+
+For SWIG purposes, the closest thing to this that I have right now is the
+`_init_table` function. So model it after that.
 
 https://docs.python.org/2.7/library/ctypes.html#arrays
 https://docs.python.org/2.7/library/ctypes.html#pointers
