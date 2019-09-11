@@ -5,6 +5,7 @@
 
 #define SAMPLES_PER_SECOND   44100
 #define DT  (1. / SAMPLES_PER_SECOND)
+#define BUFSIZE 1024
 
 #define WAVE_MAX_BIT       24
 #define TABLE_SIZE_BIT     13
@@ -14,11 +15,16 @@
 #define TABLE_SIZE     (1 << TABLE_SIZE_BIT)
 #define PHASE_MODULO   (1 << PHASE_MODULO_BIT)
 
+const int _BUFSIZE = BUFSIZE;
+
+extern void initfoo(void);
+
 extern void _init_table(void);
 extern int sine_table[8192]; // TABLE_SIZE
-extern int sinusoid(int32_t **ptr, double freq, double phase,
+extern int sinusoid(int *ptr, double freq, double phase,
                     double ampl1, double ampl2);
 
+/*
 class Vox
 {
 private:
@@ -56,3 +62,4 @@ public:
             return sqrt(3.0) * ((-phase >> (PHASE_MODULO_BIT - WAVE_MAX_BIT - 2)) + 3 * WAVE_MAX);
     }
 };
+*/

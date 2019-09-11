@@ -13,8 +13,7 @@ void _init_table(void)
     }
 }
 
-
-int sinusoid(int32_t **ptr, double freq, double phase,
+int sinusoid(int *ptr, double freq, double phase,
              double ampl1, double ampl2)
 {
     // fill in details later
@@ -23,12 +22,6 @@ int sinusoid(int32_t **ptr, double freq, double phase,
 
 int main(void)
 {
-    int i;
-    Vox v = Vox();
-    v.set_freq(3);
-    for (i = 0; i < SAMPLES_PER_SECOND; i++) {
-        printf("%d %d\n", i, v.sine());
-        v.step();
-    }
+    _init_table();
     return 0;
 }
